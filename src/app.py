@@ -91,6 +91,17 @@ def add_colleague(your_id, their_code):
     return_fail = {'success': False, 'data': 'Person or code not found'}
     return json.dumps(return_fail), 404
 
+@app.route('/api/user/<int:your_id>/<string:their_code>/', methods=['DELETE'])
+def del_contact(your_id, their_code):
+    person = User.query.filter_by(id=your_id).first()
+    contact = User.query.filter_by(code=their_code).first()
+    if person is not None and contact is not None:
+        db.session.delete(contact)
+        db.session.commit()
+        return_suc = {'success': True, 'data': contact.serialize(True)}
+        return json.dumps(return_suc), 200
+    return_fail = {'success': False, 'data': 'contact not found'}
+    return json.dumps(return_fail), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
