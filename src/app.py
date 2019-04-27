@@ -75,10 +75,14 @@ def edit_user(user_id):
 def add_contact(user_id,other_code):
     person = User.query.filter_by(id = user_id).first() 
     them = User.query.filter_by(code = other_code).first()
-    if them.code is person.code:
-        return_self = {'success': False, 'data': 'Cannot add yourself'}
-        return json.dumps(return_self),404 
+    repeat = Associates.query.filter_by(code = other_code).first()
+    if (repeat is not None):
+        return_dup = {'success': False, 'data': 'Cannot add duplicates'}
+        return json.dumps(return_dup),404
     if person is not None and them is not None:
+        if them.code is person.code:
+            return_self = {'success': False, 'data': 'Cannot add yourself'}
+            return json.dumps(return_self),404 
         contact = Associates(
             name = them.name,
             email = them.email,
@@ -88,9 +92,6 @@ def add_contact(user_id,other_code):
             imgURL = them.imgURL,
             their_code = person.code
         )
-        if (contact in person.contacts):
-            return_dup = {'success': False, 'data': 'Cannot add duplicates'}
-            return json.dumps(return_dup),404
         person.contacts.append(contact)
         db.session.add(contact)
         db.session.commit()
