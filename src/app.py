@@ -28,9 +28,11 @@ def get_all_users():
 @app.route('/api/users/', methods = ['POST'])
 def create_user():
     user_dict = json.loads(request.data)
-
+    if (user_dict.get('name') == ''):
+        return_fail = {'success': False}
+        return json.dumps(return_fail), 404
     user_info = User(
-        name = user_dict.get('name',"anon"),
+        name = user_dict.get('name'),
         email = user_dict.get('email',""),
         phone = user_dict.get('phone',""),
         company = user_dict.get('company',""),
