@@ -1,7 +1,8 @@
 import json
 import os
 from db import db, User, Associates
-from flask import Flask, request
+from flask import Flask, request, send_from_directory
+
 
 
 app = Flask(__name__)
@@ -133,8 +134,10 @@ def upload_image():
 @app.route('/images/<int:id>', methods = ['GET'])
 def get_image(id):
     path = os.path.join(PROJECT_ROOT, UPLOAD_FOLDER)
+    filepath = os.path.join(path, str(id)+'.png')
+    print(filepath)
     if path is not None:
-        if os.path.isfile(os.path.join(path, str(id)+'.png')):
+        if os.path.isfile(filepath):
             name = str(id) + '.png'
             return send_from_directory(directory=path, filename = name)
         else:
