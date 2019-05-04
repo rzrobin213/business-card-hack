@@ -1,11 +1,14 @@
 import json
+import os
 from db import db, User, Associates
 from flask import Flask, request
 
 
 app = Flask(__name__)
 db_filename = 'business.db'
+UPLOAD_FOLDER = 'uploads'
 
+PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname( __file__ ), '..'))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///%s' % db_filename
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SQLALCHEMY_ECHO'] = True
@@ -112,6 +115,32 @@ def del_contact(your_id, their_code):
         return json.dumps(return_suc), 200
     return_fail = {'success': False, 'data': 'contact or user not found'}
     return json.dumps(return_fail), 404
+
+
+@app.route('/images/', methods = ['POST'])
+def upload_image():
+    if UPLOAD_FOLDER is not None:
+        file = request.files[UPLOAD_FOLDER]
+        file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
+        newImgURL = "http://0.0.0.0:5000/images/" + file,filename
+        user=db.User.filter_by(id=int(file.filename)).first()
+        user.imgURL = newImgURL
+        db.session.add(user)
+        db.session.commit()
+    res = {'success': True}
+    return json.dumps(res), 200
+
+@app.route('/images/<int:id>', methods = ['GET'])
+def get_image(id):
+    path = os.path.join(PROJECT_ROOT, UPLOAD_FOLDER)
+    if path is not None:
+        if os.path.isfile(os.path.join(path, str(id)+'.png')):
+            name = str(id) + '.png'
+            return send_from_directory(directory=path, filename = name)
+        else:
+            return json.dumps({'error': 'Not a valid id'}), 404
+    else:
+        return json.dumps({'error': 'Not a valid path'}), 404
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000, debug=True)
