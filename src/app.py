@@ -1,6 +1,6 @@
 import json
 import os
-from db import db, User, Associates
+from db import db, User
 from flask import Flask, request, send_from_directory
 
 
@@ -19,104 +19,96 @@ with app.app_context():
     db.create_all()
 
 
-@app.route('/api/users/')
+@app.route('/api/users/', methods=['GET'])
 def get_all_users():
     users = User.query.all()
-    res = {'success': True, 'data': [user.serialize() for user in users]}
+    res = {'success': True, 'data': [user.serialize(True) for user in users]}
     return json.dumps(res), 200
 
-@app.route('/api/users/', methods = ['POST'])
+@app.route('/api/users/', methods=['POST'])
 def create_user():
     user_dict = json.loads(request.data)
     if (user_dict.get('name') == ''):
         return_fail = {'success': False}
         return json.dumps(return_fail), 404
     user_info = User(
-        name = user_dict.get('name'),
-        email = user_dict.get('email',""),
-        phone = user_dict.get('phone',""),
-        company = user_dict.get('company',""),
+        name=user_dict.get('name', "anon"),
+        email=user_dict.get('email', ""),
+        phone=user_dict.get('phone', ""),
+        company=user_dict.get('company', ""),
+        position=user_dict.get('position', ""),
+        website=user_dict.get('website', "")
     )
     db.session.add(user_info)
     db.session.commit()
-    return_info = {'success': True, 'data': user_info.serialize()}
+    return_info = {'success': True, 'data': user_info.serialize(True)}
     return json.dumps(return_info), 201
 
-@app.route('/api/user/<int:user_id>/')
+@app.route('/api/user/<int:user_id>/', methods=['GET'])
 def get_user(user_id):
-    user = User.query.filter_by(id = user_id).first()
+    user = User.query.filter_by(id=user_id).first()
     if user is not None:
-        return_suc = {'success': True, 'data': user.serialize()}
+        return_suc = {'success': True, 'data': user.serialize(True)}
         return json.dumps(return_suc), 200
     return_fail = {'success': False, 'error': 'User not found!'}
     return json.dumps(return_fail), 404
 
-@app.route('/api/user/<int:user_id>/', methods = ['DELETE'])
+@app.route('/api/user/<int:user_id>/', methods=['DELETE'])
 def delete_user(user_id):
-    user = User.query.filter_by(id = user_id).first() 
+    user = User.query.filter_by(id=user_id).first()
     if user is not None:
         db.session.delete(user)
         db.session.commit()
-        return_suc = {'success': True, 'data': user.serialize()}
+        return_suc = {'success': True, 'data': user.serialize(True)}
         return json.dumps(return_suc), 200
     return_fail = {'success': False, 'data': 'User not found'}
     return json.dumps(return_fail), 404
 
-@app.route('/api/user/<int:user_id>/', methods = ['POST'])
+@app.route('/api/user/<int:user_id>/', methods=['POST'])
 def edit_user(user_id):
-    user = User.query.filter_by(id = user_id).first() 
+    user = User.query.filter_by(id=user_id).first()
     if user is not None:
         user_dict = json.loads(request.data)
-        user.name = user_dict.get('name',user.name)
-        user.email = user_dict.get('email',user.email)
-        user.phone = user_dict.get('phone',user.phone)
-        user.company = user_dict.get('company',user.company)
+        user.name = user_dict.get('name', user.name)
+        user.email = user_dict.get('email', user.email)
+        user.phone = user_dict.get('phone', user.phone)
+        user.company = user_dict.get('company', user.company)
+        user.position = user_dict.get('position', user.position)
+        user.website = user_dict.get('website', user.website)
         db.session.commit()
-        return_suc = {'success': True, 'data': user.serialize()}
+        return_suc = {'success': True, 'data': user.serialize(True)}
         return json.dumps(return_suc), 200
     return_fail = {'success': False, 'data': 'User not found'}
     return json.dumps(return_fail), 404
 
-@app.route('/api/user/<int:user_id>/<string:other_code>/contacts/', methods = ['POST'])
-def add_contact(user_id,other_code):
-    person = User.query.filter_by(id = user_id).first() 
-    them = User.query.filter_by(code = other_code).first()
-    repeat = Associates.query.filter_by(code = other_code).first()
-    if (repeat is not None):
-        return_dup = {'success': False, 'data': 'Cannot add duplicates'}
-        return json.dumps(return_dup),404
-    if person is not None and them is not None:
-        if them.code is person.code:
-            return_self = {'success': False, 'data': 'Cannot add yourself'}
-            return json.dumps(return_self),404 
-        contact = Associates(
-            name = them.name,
-            email = them.email,
-            phone = them.phone,
-            company = them.company,
-            code = them.code,
-            imgURL = them.imgURL,
-            their_code = person.code
-        )
+@app.route('/api/user/<int:your_id>/<string:their_code>/', methods=['POST'])
+def add_contact(your_id, their_code):
+    person = User.query.filter_by(id=your_id).first()
+    contact = User.query.filter_by(code=their_code).first()
+    if person is not None and contact is not None and person.id != contact.id:
         person.contacts.append(contact)
         db.session.add(contact)
         db.session.commit()
-        return_suc = {'success': True, 'data': contact.serialize()}
+        return_suc = {'success': True, 'data': contact.serialize(True)}
         return json.dumps(return_suc), 200
     return_fail = {'success': False, 'data': 'User or Contact not found'}
     return json.dumps(return_fail), 404
 
-
-@app.route('/api/user/<int:your_id>/<string:their_code>/', methods=['DELETE'])
-def del_contact(your_id, their_code):
+@app.route('/api/user/<int:your_id>/<int:their_id>/', methods=['DELETE'])
+def del_contact(your_id, their_id):
     person = User.query.filter_by(id=your_id).first()
-    contact = Associates.query.filter_by(code=their_code).first()
+    contact = User.query.filter_by(id=their_id).first()
     if person is not None and contact is not None:
-        db.session.delete(contact)
-        db.session.commit()
-        return_suc = {'success': True, 'data': contact.serialize()}
-        return json.dumps(return_suc), 200
-    return_fail = {'success': False, 'data': 'contact or user not found'}
+        try:
+            person.contacts.remove(contact)
+            db.session.add(person)
+            db.session.commit()
+            return_suc = {'success': True, 'data': contact.serialize(True)}
+            return json.dumps(return_suc), 200
+        except ValueError:
+            return_fail = {'success': False, 'data': 'Contact not found'}
+    return_fail = {'success': False,
+                   'data': 'Contact or person does not exist'}
     return json.dumps(return_fail), 404
 
 
