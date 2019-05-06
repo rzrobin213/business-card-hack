@@ -6,8 +6,6 @@ from flask import Flask, request, send_from_directory
 
 app = Flask(__name__)
 db_filename = 'business.db'
-folderpath = "/uploads"
-os.mkdir(folderpath)
 UPLOAD_FOLDER = 'uploads'
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__)))
@@ -123,23 +121,20 @@ def del_contact(your_id, their_id):
     return json.dumps(return_fail), 404
 
 
-@app.route('/api/images/<int:your_id>', methods=['POST'])
+@app.route('/api/images/<int:your_id>/', methods=['POST'])
 def upload_image(your_id):
-    if UPLOAD_FOLDER is not None:
-        file = request.files[UPLOAD_FOLDER]
-        file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
-        newImgURL = "http://34.73.24.69/images/" + str(your_id)
-        user = User.query.filter_by(id=your_id).first()
-        user.imgURL = newImgURL
-        db.session.add(user)
-        db.session.commit()
-        res = {'success': True}
-        return json.dumps(res), 200
-    res = {'success': False, 'data': 'No File Found'}
-    return json.dumps(res), 404
+    file = request.files[UPLOAD_FOLDER]
+    file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
+    newImgURL = "http://0.0.0.0:5000/api/images/" + str(your_id)
+    user = User.query.filter_by(id=your_id).first()
+    user.imgURL = newImgURL
+    db.session.add(user)
+    db.session.commit()
+    res = {'success': True}
+    return json.dumps(res), 200
 
 
-@app.route('/api/images/<int:id>', methods=['GET'])
+@app.route('/api/images/<int:id>/', methods=['GET'])
 def get_image(id):
     path = os.path.join(PROJECT_ROOT, UPLOAD_FOLDER)
     filepath = os.path.join(path, str(id)+'.png')
