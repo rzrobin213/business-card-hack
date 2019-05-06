@@ -1,12 +1,13 @@
 import json
 import os
-import cv2
 from db import db, User
 from flask import Flask, request, send_from_directory
 
 
 app = Flask(__name__)
 db_filename = 'business.db'
+folderpath = "/uploads"
+os.mkdir(folderpath)
 UPLOAD_FOLDER = 'uploads'
 
 PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__)))
