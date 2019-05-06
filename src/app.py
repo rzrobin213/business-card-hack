@@ -125,7 +125,7 @@ def del_contact(your_id, their_id):
 def upload_image(your_id):
     file = request.files[UPLOAD_FOLDER]
     file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
-    newImgURL = "http://0.0.0.0:5000/api/images/" + str(your_id)
+    newImgURL = "http://34.73.24.69/api/images/" + str(your_id)
     user = User.query.filter_by(id=your_id).first()
     user.imgURL = newImgURL
     db.session.add(user)
