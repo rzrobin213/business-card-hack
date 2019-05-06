@@ -85,6 +85,10 @@ def edit_user(user_id):
 def add_contact(your_id, their_code):
     person = User.query.filter_by(id=your_id).first()
     contact = User.query.filter_by(code=their_code).first()
+    contactlst = person.contacts
+    if contact in contactlst:
+        return_fail = {'success': False, 'data': 'Duplicate User'}
+        return json.dumps(return_fail), 404
     if person is not None and contact is not None and person.id != contact.id:
         person.contacts.append(contact)
         db.session.add(contact)
@@ -117,13 +121,15 @@ def upload_image():
     if UPLOAD_FOLDER is not None:
         file = request.files[UPLOAD_FOLDER]
         file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
-        newImgURL = "http://0.0.0.0:5000/images/" + file,filename
+        newImgURL = "http://34.73.24.69/images/" + file,filename
         user=db.User.filter_by(id=int(file.filename)).first()
         user.imgURL = newImgURL
         db.session.add(user)
         db.session.commit()
-    res = {'success': True}
-    return json.dumps(res), 200
+        res = {'success': True}
+        return json.dumps(res), 200
+    res = {'success': False, 'data': 'No File Found'}
+    return json.dumps(res), 404
 
 @app.route('/images/<int:id>', methods = ['GET'])
 def get_image(id):
