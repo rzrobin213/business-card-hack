@@ -5,8 +5,8 @@
 **App Tagline:** Moving the professional's preferred way of networking into a virtual environment.
   
 **Links:**  
-> IOS GitHub Repo: 
-> Backend Github Repo:[https://github.com/rzrobin213/business-card-hack.git]  
+> IOS GitHub Repo:  
+> Backend Github Repo: https://github.com/rzrobin213/business-card-hack.git  
   
 **Screenshots:**   
   
