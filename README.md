@@ -18,6 +18,7 @@
 For backend, the requirements were:
 1) Designing an API, using database modeling, and implementing it using the Flask boilerplate code provided.  
 2) Deployment to Google Cloud.  
+  
 We completed both of these requirements because to model users and contacts we used SQLAlchemy and modeled the data using the various database methods we learned in class. For our app, we also designed the API using Flask, creating routes for the front-end to interact with. Finally, we used the Google Cloud Platform to deploy our app so that it could be run remotely and so our IOS developers could interact with it.  
 
 
