@@ -121,7 +121,7 @@ def upload_image():
     if UPLOAD_FOLDER is not None:
         file = request.files[UPLOAD_FOLDER]
         file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
-        newImgURL = "http://34.73.24.69/images/" + file,filename
+        newImgURL = "http://34.73.24.69/images/" + file.filename
         user=db.User.filter_by(id=int(file.filename)).first()
         user.imgURL = newImgURL
         db.session.add(user)
