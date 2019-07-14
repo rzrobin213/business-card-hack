@@ -1,5 +1,6 @@
 import json
 import os
+import base64
 from db import db, User
 from flask import Flask, request, send_from_directory
 
@@ -125,6 +126,23 @@ def del_contact(your_id, their_id):
 def upload_image(your_id):
     file = request.files[UPLOAD_FOLDER]
     file.save(os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, file.filename))
+    newImgURL = "http://34.73.24.69/api/images/" + str(your_id)
+    user = User.query.filter_by(id=your_id).first()
+    user.imgURL = newImgURL
+    db.session.add(user)
+    db.session.commit()
+    res = {'success': True}
+    return json.dumps(res), 200
+
+@app.route('/api/images/<int:your_id>/string/', methods=['POST'])
+def upload_image_string(your_id):
+    filename = str(your_id) + '.png'
+    save_path = os.path.join(PROJECT_ROOT, UPLOAD_FOLDER, filename)
+    file = open(save_path,"wb")
+    data = json.loads(request.data)
+    imgData = base64.b64decode(data.get('img'))
+    file.write(imgData)
+    file.close()
     newImgURL = "http://34.73.24.69/api/images/" + str(your_id)
     user = User.query.filter_by(id=your_id).first()
     user.imgURL = newImgURL
